@@ -1,0 +1,6 @@
+@GoldTrading.Api_HostAddress = http://localhost:5010
+
+GET {{GoldTrading.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
