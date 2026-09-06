@@ -7,6 +7,13 @@ using GoldTrading.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── Hosting — PaaS platforms like Render assign the listen port via $PORT ────
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
 // ── Configuration — all business values from appsettings.json ────────────────
 builder.Services.AddOptions<PricingOptions>()
     .BindConfiguration(PricingOptions.Section)
@@ -64,6 +71,12 @@ if (app.Environment.IsDevelopment())
 app.UseCors(ApiMessages.DefaultCorsPolicy);
 app.UseAuthorization();
 app.MapControllers();
+
+// Liveness endpoint for Render's health check — deliberately outside
+// GlobalExceptionMiddleware's error envelope and unauthenticated, since
+// it reports process health only, not application state.
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+
 app.Run();
 
 // Exposes Program to GoldTrading.IntegrationTests via WebApplicationFactory<Program>.
